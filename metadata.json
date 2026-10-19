@@ -1,0 +1,6 @@
+{
+  "name": "SmartSpace",
+  "description": "SmartSpace university facility booking and management MVP prototype for 5-user usability validation.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
