@@ -9,7 +9,6 @@ import {
   BarChart3, 
   FileSpreadsheet, 
   ShieldAlert, 
-  FlaskConical, 
   User, 
   Shield, 
   PlusCircle,
@@ -39,29 +38,6 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
-      {/* Prototype & Technopreneurship Disclaimer Banner */}
-      {!disclaimerDismissed && (
-        <div className="bg-slate-900 text-slate-100 px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-2 border-b border-slate-800">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase border border-amber-500/30">
-              Prototype MVP Notice
-            </span>
-            <span>
-              Academic Technopreneurship Case Study 4 validation build. CTU Main Campus is the proposed pilot institution.
-            </span>
-            <span className="text-slate-400 hidden sm:inline">
-              (Not officially adopted or endorsed by any university. Demo data only.)
-            </span>
-          </div>
-          <button
-            onClick={() => setDisclaimerDismissed(true)}
-            className="text-slate-400 hover:text-white transition-colors text-[11px] underline cursor-pointer"
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
-
       {/* Main Navigation Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
@@ -100,24 +76,8 @@ export const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Center/Right: Role Switcher & 5-User Testing Suite Button */}
+          {/* Center/Right: Role Switcher & Navigation */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* 5-User Validation Mode Button */}
-            <button
-              onClick={() => setActiveView('usability-testing')}
-              className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                activeView === 'usability-testing'
-                  ? 'bg-amber-600 text-white shadow-xs'
-                  : 'bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100'
-              }`}
-              title="Open the 5-User Usability Testing Suite for Technopreneurship Case Study 4"
-            >
-              <FlaskConical className="w-4 h-4 text-amber-500 shrink-0" />
-              <span className="hidden sm:inline">Usability Testing</span>
-              <span className="text-[10px] px-1.5 py-0.2 bg-amber-200/80 text-amber-900 rounded font-bold">
-                5-User
-              </span>
-            </button>
 
             {/* DEMO ROLE SWITCHER */}
             <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">

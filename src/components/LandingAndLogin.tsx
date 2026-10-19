@@ -94,14 +94,6 @@ export const LandingAndLogin: React.FC = () => {
               <Shield className="w-4 h-4 text-amber-400" />
               <span>Enter Demo as Facility Admin</span>
             </button>
-
-            <button
-              onClick={() => setActiveView('usability-testing')}
-              className="px-5 py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs sm:text-sm font-bold border border-amber-500/40 transition-all flex items-center gap-2 cursor-pointer"
-            >
-              <FlaskConical className="w-4 h-4" />
-              <span>5-User Validation Mode</span>
-            </button>
           </div>
         </div>
 
@@ -258,7 +250,7 @@ export const LandingAndLogin: React.FC = () => {
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-amber-900 space-y-1">
             <strong className="block font-semibold">Simulated Demo Authentication Notice:</strong>
             <p>
-              This login interface simulates user and administrative access for Technopreneurship Case Study 4 prototype testing. No real passwords or sensitive credentials are required or stored.
+              This login interface simulates user and administrative access for prototype usability evaluation. No real passwords or sensitive credentials are required or stored.
             </p>
           </div>
         </div>
@@ -277,7 +269,7 @@ export const LandingAndLogin: React.FC = () => {
               Proposed Initial Pilot: {currentInstitution.name} ({currentInstitution.shortName})
             </h3>
             <p className="text-xs text-slate-600 leading-relaxed">
-              SmartSpace is proposed to serve public and private higher education institutions across Cebu City. CTU Main Campus represents our initial proposed pilot scenario for Case Study 4 validation.
+              SmartSpace is proposed to serve public and private higher education institutions across Cebu City. CTU Main Campus represents our initial proposed pilot scenario for usability evaluation.
             </p>
             <p className="text-[11px] text-slate-400 italic">
               *Disclaimer: SmartSpace is a proposed technological concept currently undergoing usability and problem-relevance validation. It is not officially endorsed, adopted, or deployed by CTU or any university.

@@ -301,7 +301,7 @@ export const BookingForm: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Technopreneurship Case Study 4 Defense"
+                  placeholder="e.g. Senior Capstone Project Defense"
                   value={eventName}
                   onChange={(e) => setEventName(e.target.value)}
                   required

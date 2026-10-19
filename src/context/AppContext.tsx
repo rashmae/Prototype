@@ -754,12 +754,12 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `smartspace_validation_data_case_study_4_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `smartspace_validation_data_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    addToast('success', 'CSV Exported', 'Downloaded validation session data for Case Study 4.');
+    addToast('success', 'CSV Exported', 'Downloaded validation session data.');
   };
 
   return (

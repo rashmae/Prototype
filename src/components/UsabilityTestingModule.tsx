@@ -180,7 +180,7 @@ export const UsabilityTestingModule: React.FC = () => {
             <div className="flex items-center gap-2 mb-1.5">
               <span className="px-2.5 py-0.5 rounded bg-amber-400 text-slate-950 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
                 <FlaskConical className="w-3.5 h-3.5" />
-                Case Study 4 Validation Suite
+                Usability Validation Suite
               </span>
               <span className="text-xs text-amber-200">
                 5-Person Usability & Problem Relevance Testing
@@ -658,11 +658,11 @@ export const UsabilityTestingModule: React.FC = () => {
             </div>
           </div>
 
-          {/* Technopreneurship Case Study 4 Interview & Usability Questions */}
+          {/* Usability Feedback & Interview Questions */}
           <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs space-y-5">
             <div className="border-b border-slate-100 pb-3">
               <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                Case Study 4 Usability Feedback
+                Usability Evaluation Feedback
               </span>
               <h3 className="text-sm font-bold text-slate-900 mt-1">
                 Participant Interview Responses ({activeParticipant.identifier})
@@ -1049,7 +1049,7 @@ export const UsabilityTestingModule: React.FC = () => {
 
           {/* Academic & Market Validation Disclosure */}
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600 space-y-1.5">
-            <strong className="text-slate-800 block">Case Study 4 Validation Interpretation Guidelines:</strong>
+            <strong className="text-slate-800 block">Usability Validation Interpretation Guidelines:</strong>
             <p className="text-[11px] leading-relaxed">
               This five-person usability evaluation provides qualitative evidence of interface clarity, intuitive workflow progression, and user-perceived problem relevance. In accordance with technopreneurship academic standards, a 5-user prototype test does not constitute statistically significant market demand validation. Findings should be presented as initial usability feedback to inform subsequent product iterations.
             </p>

@@ -269,7 +269,7 @@ export const UtilizationReportsView: React.FC = () => {
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-xs text-slate-600 space-y-2">
         <div className="flex items-center gap-2 text-slate-900 font-bold">
           <Info className="w-4 h-4 text-blue-600 shrink-0" />
-          <span>Case Study 4 Prototype Limitations & Metric Definitions</span>
+          <span>Prototype Metric Definitions & Operational Scope</span>
         </div>
         <ul className="space-y-1.5 list-disc list-inside text-slate-600 leading-relaxed text-[11px]">
           <li>

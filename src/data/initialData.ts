@@ -8,7 +8,7 @@ export const DEMO_INSTITUTIONS: Institution[] = [
     campus: 'Main Campus, M.J. Cuenco Ave, Cebu City',
     city: 'Cebu City',
     isPilot: true,
-    statusNote: 'Proposed Initial Pilot Institution (Academic Technopreneurship Case Study 4 Prototype)',
+    statusNote: 'Proposed Initial Pilot Institution (Facility Management Prototype)',
   },
   {
     id: 'usc-tc',
@@ -280,7 +280,7 @@ export const INITIAL_BOOKINGS: BookingRequest[] = [
     institutionId: 'ctu-main',
     facilityId: 'ctu-fac-lecture-a',
     facilityName: 'Lecture Room A',
-    eventName: 'Technopreneurship Case Study 4 Presentation',
+    eventName: 'Senior Capstone Project Defense',
     purpose: 'Academic Course Defense and Live Demo',
     date: getOffsetDate(1), // Tomorrow
     startTime: '09:00',

@@ -95,14 +95,14 @@ const MainContent: React.FC = () => {
                 className="text-amber-700 font-semibold hover:text-amber-800 transition-colors cursor-pointer flex items-center gap-1"
               >
                 <FlaskConical className="w-3.5 h-3.5" />
-                <span>5-User Validation Suite</span>
+                <span>Evaluation Suite</span>
               </button>
             </div>
           </div>
 
           <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
             <p>
-              Technopreneurship Case Study 4 MVP Prototype · Active Workspace: <strong className="text-slate-600">{currentInstitution.name}</strong>
+              SmartSpace Facility Management Platform · Active Workspace: <strong className="text-slate-600">{currentInstitution.name}</strong>
             </p>
             <p>
               Notice: Prototype for academic validation. Not officially adopted or endorsed by any university.

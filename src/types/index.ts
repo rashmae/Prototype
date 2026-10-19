@@ -86,7 +86,7 @@ export interface TaskObservation {
 }
 
 export interface OpenEndedResponses {
-  // Case Study 4 Usability Specific Questions
+  // Usability Specific Questions
   qFindFacilityEasy: string; // Was it easy to find a suitable facility?
   qAvailabilityClear: string; // Was the availability information clear?
   qBookingFormClear: string; // Was the booking form easy to understand?
