@@ -145,21 +145,21 @@ export const MyBookingsView: React.FC = () => {
         </div>
       </div>
 
-      {/* Testing Flow Tip for 5-User Validation */}
+      {/* Administrative Review Status Tip */}
       {pendingCount > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900">
           <div className="flex items-start gap-2.5">
             <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
             <div>
-              <strong>Validation Testing Step (Task 4):</strong>
+              <strong>Pending Administrative Review:</strong>
               <span className="ml-1">
-                You have {pendingCount} request(s) awaiting approval. To test administrator approval or rejection, switch to the <strong>Facility Administrator</strong> demo role.
+                You have {pendingCount} request(s) awaiting approval by the campus facility office. You can switch to the <strong>University Admin</strong> role to review or approve reservations.
               </span>
             </div>
           </div>
           <button
             onClick={() => {
-              setCurrentRole('admin');
+              setCurrentRole('university_admin');
               setActiveView('admin-requests');
             }}
             className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shrink-0 transition-colors cursor-pointer flex items-center gap-1"

@@ -191,7 +191,7 @@ export const BookingForm: React.FC = () => {
             </div>
 
             <div className="text-[11px] text-amber-800 bg-amber-50 p-2.5 rounded border border-amber-200">
-              <strong>Testing Tip:</strong> To complete the full validation cycle, switch role to <strong>Facility Administrator</strong> to approve or reject this request, or go to <strong>My Booking Requests</strong> to monitor the status.
+              <strong>Next Step:</strong> Your request has been queued for review by the campus facility office. You can track this request under <strong>My Booking Requests</strong> or switch to <strong>University Admin</strong> to simulate administrative approval.
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 pt-2">

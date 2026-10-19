@@ -22,8 +22,10 @@ export type AppView =
   | 'new-booking'
   | 'my-bookings'
   | 'admin-requests'
+  | 'admin-facilities'
   | 'admin-records'
   | 'reports'
+  | 'super-admin'
   | 'usability-testing';
 
 interface ToastMessage {
@@ -49,6 +51,8 @@ interface AppContextType {
   currentInstitution: Institution;
   allInstitutions: Institution[];
   setInstitutionId: (id: string) => void;
+  addInstitution: (inst: Omit<Institution, 'id' | 'registeredAt'>) => { success: boolean; institution?: Institution; error?: string };
+  updateInstitution: (id: string, updates: Partial<Institution>) => void;
   currentRole: UserRole;
   setCurrentRole: (role: UserRole) => void;
   activeView: AppView;
@@ -56,8 +60,14 @@ interface AppContextType {
   selectedFacility: Facility | null;
   setSelectedFacility: (facility: Facility | null) => void;
 
-  // Facilities & Bookings
+  // Facilities & Management
+  allFacilities: Facility[];
   institutionFacilities: Facility[];
+  addFacility: (facility: Omit<Facility, 'id'>) => { success: boolean; facility?: Facility; error?: string };
+  updateFacility: (id: string, updates: Partial<Facility>) => void;
+  deleteFacility: (id: string) => void;
+
+  // Bookings
   allBookings: BookingRequest[];
   institutionBookings: BookingRequest[];
   userBookings: BookingRequest[];
@@ -107,7 +117,7 @@ interface AppContextType {
   ) => void;
   updateParticipantInfo: (
     participantId: number,
-    userType: 'Student' | 'Faculty',
+    userType: 'Student' | 'Faculty' | 'Staff',
     dept: string
   ) => void;
   updateParticipantNotes: (
@@ -192,17 +202,69 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  // Institutions state
+  const [institutions, setInstitutions] = useState<Institution[]>(() => {
+    try {
+      const stored = localStorage.getItem('smartspace_mvp_institutions_v4');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('Failed to parse stored institutions:', e);
+    }
+    return DEMO_INSTITUTIONS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('smartspace_mvp_institutions_v4', JSON.stringify(institutions));
+    } catch (e) {
+      console.warn('Failed to save institutions to localStorage:', e);
+    }
+  }, [institutions]);
+
+  // Facilities state
+  const [facilities, setFacilities] = useState<Facility[]>(() => {
+    try {
+      const stored = localStorage.getItem('smartspace_mvp_facilities_v4');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('Failed to parse stored facilities:', e);
+    }
+    return INITIAL_FACILITIES;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('smartspace_mvp_facilities_v4', JSON.stringify(facilities));
+    } catch (e) {
+      console.warn('Failed to save facilities to localStorage:', e);
+    }
+  }, [facilities]);
+
   // Login handler
   const loginAs = (role: UserRole, email?: string, name?: string) => {
     let userSession: DemoUserSession;
-    if (role === 'admin') {
+    if (role === 'super_admin') {
       userSession = {
-        name: name || 'Engr. R. Santos',
-        email: email || 'admin.facilities@ctu.edu.ph',
-        role: 'admin',
-        organization: 'Physical Plant & Campus Facilities Office',
+        name: name || 'SmartSpace Platform Super Admin',
+        email: email || 'superadmin@smartspace.ph',
+        role: 'super_admin',
+        organization: 'SmartSpace Platform Operations',
       };
-      setCurrentRole('admin');
+      setCurrentRole('super_admin');
+      setActiveView('super-admin');
+    } else if (role === 'university_admin' || role === 'admin') {
+      const activeInst = institutions.find((i) => i.id === institutionId) || institutions[0];
+      userSession = {
+        name: name || activeInst.assignedAdminName || 'Engr. R. Santos',
+        email: email || activeInst.assignedAdminEmail || 'admin.facilities@ctu.edu.ph',
+        role: 'university_admin',
+        organization: `${activeInst.shortName} Facilities Office`,
+      };
+      setCurrentRole('university_admin');
       setActiveView('admin-requests');
     } else {
       userSession = {
@@ -226,7 +288,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     addToast(
       'success',
       'Demo Session Started',
-      `Logged in as ${userSession.name} (${role === 'admin' ? 'Facility Administrator' : 'User'}). Simulated demo environment.`
+      `Logged in as ${userSession.name} (${role === 'super_admin' ? 'Super Admin' : role === 'university_admin' || role === 'admin' ? 'University Facility Admin' : 'Student / Faculty'}).`
     );
   };
 
@@ -236,6 +298,46 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     localStorage.removeItem(AUTH_STORAGE_KEY);
     setActiveView('landing');
     addToast('info', 'Logged Out', 'Returned to the SmartSpace landing & demo login page.');
+  };
+
+  // Dynamic institution & facility management
+  const addInstitution = (instData: Omit<Institution, 'id' | 'registeredAt'>) => {
+    const id = instData.shortName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Math.random().toString(36).substring(2, 6);
+    const newInst: Institution = {
+      ...instData,
+      id,
+      registeredAt: new Date().toISOString().split('T')[0],
+      status: 'active',
+    };
+    setInstitutions((prev) => [newInst, ...prev]);
+    addToast('success', 'University Registered', `${newInst.name} enrolled onto SmartSpace.`);
+    return { success: true, institution: newInst };
+  };
+
+  const updateInstitution = (id: string, updates: Partial<Institution>) => {
+    setInstitutions((prev) => prev.map((inst) => (inst.id === id ? { ...inst, ...updates } : inst)));
+    addToast('info', 'University Updated', 'Institutional configuration and subscription details updated.');
+  };
+
+  const addFacility = (facData: Omit<Facility, 'id'>) => {
+    const id = `${facData.institutionId}-fac-${Date.now().toString(36)}`;
+    const newFacility: Facility = {
+      ...facData,
+      id,
+    };
+    setFacilities((prev) => [newFacility, ...prev]);
+    addToast('success', 'Facility Added', `${newFacility.name} has been added to inventory.`);
+    return { success: true, facility: newFacility };
+  };
+
+  const updateFacility = (id: string, updates: Partial<Facility>) => {
+    setFacilities((prev) => prev.map((f) => (f.id === id ? { ...f, ...updates } : f)));
+    addToast('info', 'Facility Updated', 'Facility details and specifications saved.');
+  };
+
+  const deleteFacility = (id: string) => {
+    setFacilities((prev) => prev.filter((f) => f.id !== id));
+    addToast('warning', 'Facility Removed', 'Facility was removed from inventory.');
   };
 
   // Bookings state
@@ -293,13 +395,13 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   const currentInstitution = useMemo(() => {
-    return DEMO_INSTITUTIONS.find((i) => i.id === institutionId) || DEMO_INSTITUTIONS[0];
-  }, [institutionId]);
+    return institutions.find((i) => i.id === institutionId) || institutions[0] || DEMO_INSTITUTIONS[0];
+  }, [institutions, institutionId]);
 
   // Filter facilities by active institution
   const institutionFacilities = useMemo(() => {
-    return INITIAL_FACILITIES.filter((f) => f.institutionId === institutionId);
-  }, [institutionId]);
+    return facilities.filter((f) => f.institutionId === institutionId);
+  }, [facilities, institutionId]);
 
   // Filter bookings by active institution
   const institutionBookings = useMemo(() => {
@@ -622,7 +724,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const updateParticipantInfo = (
     participantId: number,
-    userType: 'Student' | 'Faculty',
+    userType: 'Student' | 'Faculty' | 'Staff',
     dept: string
   ) => {
     setParticipants((prev) =>
@@ -770,15 +872,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         loginAs,
         logout,
         currentInstitution,
-        allInstitutions: DEMO_INSTITUTIONS,
+        allInstitutions: institutions,
         setInstitutionId,
+        addInstitution,
+        updateInstitution,
         currentRole,
         setCurrentRole,
         activeView,
         setActiveView,
         selectedFacility,
         setSelectedFacility,
+        allFacilities: facilities,
         institutionFacilities,
+        addFacility,
+        updateFacility,
+        deleteFacility,
         allBookings: bookings,
         institutionBookings,
         userBookings,

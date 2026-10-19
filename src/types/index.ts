@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'faculty' | 'admin';
+export type UserRole = 'super_admin' | 'university_admin' | 'admin' | 'student' | 'faculty';
 
 export interface Institution {
   id: string;
@@ -6,8 +6,16 @@ export interface Institution {
   shortName: string;
   campus: string;
   city: string;
+  type: 'Public' | 'Private';
   isPilot: boolean;
-  statusNote: string;
+  status: 'active' | 'inactive' | 'trial';
+  subscriptionPlan?: 'Pilot' | 'Standard' | 'Enterprise';
+  contactName: string;
+  contactEmail: string;
+  assignedAdminName: string;
+  assignedAdminEmail: string;
+  registeredAt: string;
+  statusNote?: string;
 }
 
 export type FacilityType = 
@@ -36,6 +44,7 @@ export interface Facility {
   bookingRequirements: string[];
   imageUrl: string;
   description: string;
+  status?: 'active' | 'inactive' | 'maintenance';
 }
 
 export type BookingStatus = 'pending' | 'approved' | 'rejected';
@@ -72,7 +81,7 @@ export interface TaskDefinition {
   prompt: string;
   instructions: string;
   expectedOutcome: string;
-  shortcutView: 'facilities' | 'new-booking' | 'my-bookings' | 'admin-requests' | 'admin-records' | 'reports';
+  shortcutView: 'facilities' | 'new-booking' | 'my-bookings' | 'admin-requests' | 'admin-records' | 'reports' | 'super-admin-universities' | 'admin-facilities';
   requiredRole: UserRole;
 }
 
@@ -112,7 +121,7 @@ export interface ParticipantRating {
 export interface ParticipantRecord {
   id: number; // 1 to 5
   identifier: string; // "Participant 1"
-  userType: 'Student' | 'Faculty';
+  userType: 'Student' | 'Faculty' | 'Staff';
   collegeOrDepartment: string;
   tasks: Record<number, TaskObservation>;
   openEnded: OpenEndedResponses;

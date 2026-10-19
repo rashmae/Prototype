@@ -180,17 +180,17 @@ export const UsabilityTestingModule: React.FC = () => {
             <div className="flex items-center gap-2 mb-1.5">
               <span className="px-2.5 py-0.5 rounded bg-amber-400 text-slate-950 text-xs font-bold uppercase tracking-wider flex items-center gap-1">
                 <FlaskConical className="w-3.5 h-3.5" />
-                Usability Validation Suite
+                Tester Evaluation Suite
               </span>
               <span className="text-xs text-amber-200">
-                5-Person Usability & Problem Relevance Testing
+                Qualitative Usability & Workflow Feedback
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-              SmartSpace Usability Testing Mode
+              SmartSpace Tester Evaluation Workspace
             </h1>
             <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-              Facilitator workspace to test 5 potential users independently or under guided observation. Measure task completion, observe friction points, record open-ended feedback, and export verified empirical evidence.
+              Facilitator workspace to test participant workflows independently or under guided observation. Measure task completion, record friction points, log qualitative feedback, and export empirical evaluation evidence.
             </p>
           </div>
 
@@ -1051,7 +1051,7 @@ export const UsabilityTestingModule: React.FC = () => {
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600 space-y-1.5">
             <strong className="text-slate-800 block">Usability Validation Interpretation Guidelines:</strong>
             <p className="text-[11px] leading-relaxed">
-              This five-person usability evaluation provides qualitative evidence of interface clarity, intuitive workflow progression, and user-perceived problem relevance. In accordance with technopreneurship academic standards, a 5-user prototype test does not constitute statistically significant market demand validation. Findings should be presented as initial usability feedback to inform subsequent product iterations.
+              This usability evaluation provides qualitative evidence of interface clarity, intuitive workflow progression, and user-perceived problem relevance. A qualitative usability evaluation does not constitute statistically significant market demand validation. Findings should be presented as initial usability feedback to inform subsequent product iterations.
             </p>
           </div>
         </div>

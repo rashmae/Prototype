@@ -8,14 +8,16 @@ import {
   ClipboardCheck, 
   BarChart3, 
   FileSpreadsheet, 
-  ShieldAlert, 
   User, 
   Shield, 
+  ShieldCheck,
   PlusCircle,
   ChevronDown,
   LogOut,
   Home,
-  CheckCircle2
+  CheckCircle2,
+  Layers,
+  Sparkles
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
@@ -28,8 +30,6 @@ export const Header: React.FC = () => {
     activeView,
     setActiveView,
     institutionBookings,
-    disclaimerDismissed,
-    setDisclaimerDismissed,
     currentUser,
     logout,
   } = useApp();
@@ -38,162 +38,178 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
-      {/* Main Navigation Bar */}
+      {/* Top Bar: Brand, Workspace Switcher, and 3-Role Switcher */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 gap-4">
-          {/* Logo & Tagline */}
-          <div className="flex items-center gap-6">
+        <div className="flex items-center justify-between h-16 gap-3">
+          {/* Left: Logo & Institutional Workspace */}
+          <div className="flex items-center gap-4 sm:gap-6">
             <button
               onClick={() => setActiveView('landing')}
               className="text-left cursor-pointer transition-opacity hover:opacity-95"
-              title="Return to SmartSpace Landing & Demo Login"
+              title="Return to SmartSpace Portal"
             >
-              <SmartSpaceLogo size={36} />
+              <SmartSpaceLogo size={36} showTagline={true} />
             </button>
 
-            {/* Institution Switcher */}
-            <div className="hidden lg:flex items-center gap-1.5 pl-4 border-l border-slate-200">
-              <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
-              <div className="flex flex-col">
-                <span className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
-                  Institution Workspace
-                </span>
-                <div className="relative group">
-                  <select
-                    value={currentInstitution.id}
-                    onChange={(e) => setInstitutionId(e.target.value)}
-                    className="text-xs font-semibold text-slate-800 bg-transparent pr-5 py-0.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 rounded"
-                  >
-                    {allInstitutions.map((inst) => (
-                      <option key={inst.id} value={inst.id}>
-                        {inst.shortName} {inst.isPilot ? '(Proposed Pilot)' : '(Demo Workspace)'}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" />
+            {/* University Workspace Selector */}
+            {currentRole !== 'super_admin' ? (
+              <div className="hidden md:flex items-center gap-2 pl-4 border-l border-slate-200">
+                <Building2 className="w-4 h-4 text-slate-400 shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                    Campus Workspace
+                  </span>
+                  <div className="relative group">
+                    <select
+                      value={currentInstitution.id}
+                      onChange={(e) => setInstitutionId(e.target.value)}
+                      className="text-xs font-bold text-slate-800 bg-transparent pr-5 py-0.5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 rounded"
+                    >
+                      {allInstitutions.map((inst) => (
+                        <option key={inst.id} value={inst.id}>
+                          {inst.shortName} {inst.isPilot ? '· Proposed Initial Pilot' : `· ${inst.type}`}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="hidden md:flex items-center gap-2 pl-4 border-l border-slate-200">
+                <ShieldCheck className="w-4 h-4 text-indigo-600 shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-indigo-500">
+                    Platform Management
+                  </span>
+                  <span className="text-xs font-bold text-slate-900">
+                    Multi-University Network ({allInstitutions.length} Campuses)
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Center/Right: Role Switcher & Navigation */}
+          {/* Right: 3-Role Demo Switcher & Portal Shortcut */}
           <div className="flex items-center gap-2 sm:gap-3">
-
-            {/* DEMO ROLE SWITCHER */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-lg border border-slate-200">
-              <span className="text-[10px] font-bold text-slate-500 px-2 uppercase tracking-wider hidden xl:inline">
-                Role:
-              </span>
+            {/* THREE ROLE DEMO SWITCHER */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-2xs">
+              {/* Role 1: Student / Faculty */}
               <button
                 onClick={() => {
                   setCurrentRole('student');
-                  if (activeView === 'admin-requests' || activeView === 'admin-records' || activeView === 'reports') {
-                    setActiveView('facilities');
-                  } else if (activeView === 'landing') {
+                  if (activeView === 'super-admin' || activeView === 'admin-requests' || activeView === 'admin-facilities' || activeView === 'admin-records' || activeView === 'reports') {
                     setActiveView('facilities');
                   }
                 }}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
                   currentRole === 'student' || currentRole === 'faculty'
-                    ? 'bg-white text-blue-700 shadow-xs font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-blue-700 shadow-xs font-bold ring-1 ring-slate-200'
+                    : 'text-slate-600 hover:text-slate-900 font-medium'
                 }`}
-                title="Switch to Student / Faculty Requester Role"
+                title="Switch to Student / Faculty Requester Mode"
               >
                 <User className="w-3.5 h-3.5" />
-                <span className="hidden xs:inline">User View</span>
+                <span className="hidden sm:inline">User</span>
               </button>
+
+              {/* Role 2: University Facility Administrator */}
               <button
                 onClick={() => {
-                  setCurrentRole('admin');
-                  if (activeView === 'new-booking' || activeView === 'my-bookings' || activeView === 'landing') {
+                  setCurrentRole('university_admin');
+                  if (activeView === 'super-admin' || activeView === 'new-booking' || activeView === 'my-bookings' || activeView === 'landing') {
                     setActiveView('admin-requests');
                   }
                 }}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
-                  currentRole === 'admin'
-                    ? 'bg-slate-900 text-white shadow-xs font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
+                  currentRole === 'university_admin' || currentRole === 'admin'
+                    ? 'bg-slate-900 text-white shadow-xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900 font-medium'
                 }`}
-                title="Switch to Facility Administrator Role"
+                title="Switch to University Facility Administrator Mode"
               >
-                <Shield className="w-3.5 h-3.5" />
-                <span className="hidden xs:inline">Admin View</span>
+                <Shield className="w-3.5 h-3.5 text-amber-400" />
+                <span className="hidden sm:inline">University Admin</span>
                 {pendingCount > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 bg-amber-500 text-slate-950 text-[10px] font-bold rounded-full">
+                  <span className="ml-1 px-1.5 py-0.2 bg-amber-400 text-slate-950 text-[10px] font-black rounded-full">
                     {pendingCount}
                   </span>
                 )}
               </button>
+
+              {/* Role 3: SmartSpace Super Admin */}
+              <button
+                onClick={() => {
+                  setCurrentRole('super_admin');
+                  setActiveView('super-admin');
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-all cursor-pointer ${
+                  currentRole === 'super_admin'
+                    ? 'bg-indigo-700 text-white shadow-xs font-bold'
+                    : 'text-slate-600 hover:text-slate-900 font-medium'
+                }`}
+                title="Switch to SmartSpace Super Admin (Platform Level)"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-indigo-300" />
+                <span className="hidden sm:inline">Super Admin</span>
+              </button>
             </div>
 
-            {/* Demo Login / Landing shortcut */}
+            {/* Portal / Landing Shortcut */}
             <button
               onClick={() => setActiveView('landing')}
-              className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+              className={`p-2 rounded-xl border transition-colors cursor-pointer ${
                 activeView === 'landing'
                   ? 'bg-blue-50 border-blue-300 text-blue-700'
-                  : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900'
               }`}
-              title="View Landing & Demo Login Screen"
+              title="Return to SmartSpace Portal & Role Selection"
             >
               <Home className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* View Navigation Tabs */}
-        <div className="flex items-center justify-between border-t border-slate-100 py-1 overflow-x-auto no-scrollbar">
-          <nav className="flex items-center space-x-1 sm:space-x-2 text-xs">
-            {/* Landing link */}
-            <button
-              onClick={() => setActiveView('landing')}
-              className={`px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
-                activeView === 'landing'
-                  ? 'bg-blue-50 text-blue-700 font-semibold'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
-            >
-              Landing & Demo Login
-            </button>
-
-            {/* Student / Faculty Views */}
-            {currentRole !== 'admin' && (
+        {/* View Navigation Tabs Bar */}
+        <div className="flex items-center justify-between border-t border-slate-100 py-1.5 overflow-x-auto no-scrollbar">
+          <nav className="flex items-center space-x-1 sm:space-x-1.5 text-xs">
+            {/* 1. Student / Faculty Navigation Tabs */}
+            {(currentRole === 'student' || currentRole === 'faculty') && (
               <>
                 <button
                   onClick={() => setActiveView('facilities')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
                     activeView === 'facilities'
-                      ? 'bg-blue-50 text-blue-700 font-semibold'
+                      ? 'bg-blue-50 text-blue-700 font-bold'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <Building2 className="w-3.5 h-3.5" />
-                  Facility Directory
+                  <span>Browse Facilities</span>
                 </button>
 
                 <button
                   onClick={() => setActiveView('new-booking')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
                     activeView === 'new-booking'
-                      ? 'bg-blue-50 text-blue-700 font-semibold'
+                      ? 'bg-blue-50 text-blue-700 font-bold'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <PlusCircle className="w-3.5 h-3.5" />
-                  Request Booking
+                  <span>Request Space</span>
                 </button>
 
                 <button
                   onClick={() => setActiveView('my-bookings')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
                     activeView === 'my-bookings'
-                      ? 'bg-blue-50 text-blue-700 font-semibold'
+                      ? 'bg-blue-50 text-blue-700 font-bold'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <CalendarCheck2 className="w-3.5 h-3.5" />
-                  My Booking Requests
+                  <span>My Booking Requests</span>
                   {institutionBookings.length > 0 && (
                     <span className="ml-1 px-1.5 py-0.2 bg-slate-200 text-slate-700 rounded-full text-[10px]">
                       {institutionBookings.length}
@@ -203,69 +219,124 @@ export const Header: React.FC = () => {
               </>
             )}
 
-            {/* Admin Views */}
-            {currentRole === 'admin' && (
+            {/* 2. University Administrator Navigation Tabs */}
+            {(currentRole === 'university_admin' || currentRole === 'admin') && (
               <>
                 <button
                   onClick={() => setActiveView('admin-requests')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
                     activeView === 'admin-requests'
-                      ? 'bg-slate-900 text-white font-semibold'
+                      ? 'bg-slate-900 text-white font-bold'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <ClipboardCheck className="w-3.5 h-3.5" />
-                  Review Requests
+                  <span>Review Requests</span>
                   {pendingCount > 0 && (
-                    <span className="ml-1 px-1.5 py-0.2 bg-amber-400 text-slate-900 font-bold rounded-full text-[10px]">
+                    <span className="ml-1 px-1.5 py-0.2 bg-amber-400 text-slate-950 font-black rounded-full text-[10px]">
                       {pendingCount} Pending
                     </span>
                   )}
                 </button>
 
                 <button
+                  onClick={() => setActiveView('admin-facilities')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
+                    activeView === 'admin-facilities'
+                      ? 'bg-slate-900 text-white font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Manage Spaces</span>
+                </button>
+
+                <button
                   onClick={() => setActiveView('admin-records')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
                     activeView === 'admin-records'
-                      ? 'bg-slate-900 text-white font-semibold'
+                      ? 'bg-slate-900 text-white font-bold'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <FileSpreadsheet className="w-3.5 h-3.5" />
-                  Reservation Records
+                  <span>Reservation Records</span>
                 </button>
 
                 <button
                   onClick={() => setActiveView('reports')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
                     activeView === 'reports'
-                      ? 'bg-slate-900 text-white font-semibold'
+                      ? 'bg-slate-900 text-white font-bold'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <BarChart3 className="w-3.5 h-3.5" />
-                  Utilization Reports
+                  <span>Utilization Reports</span>
                 </button>
 
                 <button
                   onClick={() => setActiveView('facilities')}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
                     activeView === 'facilities'
-                      ? 'bg-slate-900 text-white font-semibold'
+                      ? 'bg-slate-900 text-white font-bold'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <Building2 className="w-3.5 h-3.5" />
-                  Browse Directory
+                  <span>Browse Directory</span>
+                </button>
+              </>
+            )}
+
+            {/* 3. SmartSpace Super Admin Navigation Tabs */}
+            {currentRole === 'super_admin' && (
+              <>
+                <button
+                  onClick={() => setActiveView('super-admin')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold transition-colors cursor-pointer ${
+                    activeView === 'super-admin'
+                      ? 'bg-indigo-700 text-white'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>Subscribed Universities</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveView('facilities')}
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer ${
+                    activeView === 'facilities'
+                      ? 'bg-indigo-700 text-white font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Cross-Campus Spaces</span>
                 </button>
               </>
             )}
           </nav>
 
-          {/* Current Workspace Tag */}
-          <div className="hidden sm:flex items-center gap-2 text-[11px] text-slate-500">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Workspace: <strong className="text-slate-800">{currentInstitution.shortName}</strong></span>
+          {/* Current Workspace Tag & Pilot Notice */}
+          <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
+            {currentRole === 'super_admin' ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px] font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                Platform Level View
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 text-slate-600 text-[11px]">
+                <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span>Active: <strong className="text-slate-800">{currentInstitution.shortName}</strong></span>
+                {currentInstitution.isPilot && (
+                  <span className="text-[10px] text-blue-700 bg-blue-50 px-1.5 py-0.2 rounded font-semibold border border-blue-100">
+                    Pilot
+                  </span>
+                )}
+              </span>
+            )}
           </div>
         </div>
       </div>
