@@ -8,6 +8,9 @@ import {
   TaskObservation,
   OpenEndedResponses,
   ParticipantRating,
+  InstitutionalRegistrationRequest,
+  InstitutionalDemoRequest,
+  RegisteredUserAccount,
 } from '../types';
 import {
   DEMO_INSTITUTIONS,
@@ -18,6 +21,7 @@ import {
 
 export type AppView = 
   | 'landing'
+  | 'auth'
   | 'facilities'
   | 'new-booking'
   | 'my-bookings'
@@ -42,6 +46,12 @@ export interface DemoUserSession {
   organization: string;
 }
 
+export interface AuthFlowState {
+  audience: 'selection' | 'institution' | 'user' | 'super_admin';
+  tab: 'login' | 'register';
+  highlight: 'login' | 'demo';
+}
+
 interface AppContextType {
   // Navigation & Auth
   isLoggedIn: boolean;
@@ -59,6 +69,58 @@ interface AppContextType {
   setActiveView: (view: AppView) => void;
   selectedFacility: Facility | null;
   setSelectedFacility: (facility: Facility | null) => void;
+
+  // Dedicated Access Portal & Authentication Flow
+  authFlowState: AuthFlowState;
+  setAuthFlowState: React.Dispatch<React.SetStateAction<AuthFlowState>>;
+  openAuthPortal: (
+    audience?: 'selection' | 'institution' | 'user' | 'super_admin',
+    tab?: 'login' | 'register',
+    highlight?: 'login' | 'demo'
+  ) => void;
+  isDemoModalOpen: boolean;
+  setIsDemoModalOpen: (open: boolean) => void;
+
+  // Institutional Registration & Demo Inquiries
+  institutionalRegistrations: InstitutionalRegistrationRequest[];
+  submitInstitutionalRegistration: (data: {
+    institutionName: string;
+    institutionType: 'Public University' | 'Private University' | 'College' | 'Other';
+    officialEmail: string;
+    contactPerson: string;
+    contactNumber: string;
+    password?: string;
+  }) => { success: boolean; message: string; error?: string };
+  approveInstitutionalRegistration: (requestId: string) => { success: boolean; error?: string };
+  rejectInstitutionalRegistration: (requestId: string, reason: string) => { success: boolean; error?: string };
+
+  demoRequests: InstitutionalDemoRequest[];
+  submitDemoRequest: (data: {
+    institutionName: string;
+    contactName: string;
+    contactEmail: string;
+    contactNumber: string;
+    designation: string;
+    estimatedFacilities: string;
+    preferredDate?: string;
+    message?: string;
+  }) => { success: boolean; message: string; error?: string };
+
+  // User Accounts & Authentication
+  registeredUsers: RegisteredUserAccount[];
+  registerUserAccount: (data: {
+    fullName: string;
+    email: string;
+    institutionId: string;
+    userType: RegisteredUserAccount['userType'];
+    organizationOrDept: string;
+    password?: string;
+  }) => { success: boolean; user?: RegisteredUserAccount; error?: string };
+  loginWithCredentials: (
+    email: string,
+    password: string,
+    portalType: 'institution' | 'user' | 'super_admin'
+  ) => { success: boolean; error?: string };
 
   // Facilities & Management
   allFacilities: Facility[];
@@ -144,9 +206,82 @@ const BOOKINGS_STORAGE_KEY = 'smartspace_mvp_bookings_v3';
 const PARTICIPANTS_STORAGE_KEY = 'smartspace_mvp_participants_v3';
 const INSTITUTION_STORAGE_KEY = 'smartspace_mvp_active_institution_v3';
 const AUTH_STORAGE_KEY = 'smartspace_mvp_auth_session_v3';
+const INST_REGISTRATIONS_KEY = 'smartspace_mvp_inst_registrations_v4';
+const DEMO_REQUESTS_KEY = 'smartspace_mvp_demo_requests_v4';
+const REGISTERED_USERS_KEY = 'smartspace_mvp_registered_users_v4';
+
+const DEFAULT_INST_REGISTRATIONS: InstitutionalRegistrationRequest[] = [
+  {
+    id: 'req-swu-phinma',
+    institutionName: 'Southwestern University PHINMA',
+    institutionType: 'Private University',
+    officialEmail: 'facilities.admin@swu.edu.ph',
+    contactPerson: 'Dr. Cheryl Gantuangco (VP Administration)',
+    contactNumber: '+63 (32) 415-5555',
+    submittedAt: '2026-10-28',
+    status: 'pending',
+    assignedAdminName: 'Engr. Michael Alcantara',
+    assignedAdminEmail: 'facilities.admin@swu.edu.ph',
+    notes: 'Urgent need to centralize 4 campus gymnasiums and medical simulation labs.',
+  },
+  {
+    id: 'req-cnu-main',
+    institutionName: 'Cebu Normal University',
+    institutionType: 'Public University',
+    officialEmail: 'procurement.facilities@cnu.edu.ph',
+    contactPerson: 'Prof. Reynaldo Inocian',
+    contactNumber: '+63 (32) 254-1456',
+    submittedAt: '2026-10-29',
+    status: 'pending',
+    assignedAdminName: 'Arch. Gina Dela Torre',
+    assignedAdminEmail: 'procurement.facilities@cnu.edu.ph',
+    notes: 'Inquiry for State University facility reservation compliance and audit tracking.',
+  },
+];
+
+const DEFAULT_DEMO_REQUESTS: InstitutionalDemoRequest[] = [
+  {
+    id: 'demo-uv-cebu',
+    institutionName: 'University of the Visayas',
+    contactName: 'Atty. Paulino Yabao',
+    contactEmail: 'administration@uv.edu.ph',
+    contactNumber: '+63 (32) 255-2566',
+    designation: 'Vice President for Administration',
+    estimatedFacilities: '25-50 Spaces across 3 satellite campuses',
+    preferredDate: '2026-11-05',
+    message: 'Seeking a platform to eliminate paper request slips across our downtown and Gullas medical campuses.',
+    submittedAt: '2026-10-29',
+    status: 'new',
+  },
+];
+
+const DEFAULT_REGISTERED_USERS: RegisteredUserAccount[] = [
+  {
+    id: 'user-juan-ctu',
+    fullName: 'Juan Dela Cruz',
+    email: 'juan.delacruz@ctu.edu.ph',
+    institutionId: 'ctu-main',
+    userType: 'Student Organization Officer',
+    organizationOrDept: 'Supreme Student Government (SSG)',
+    role: 'student',
+    createdAt: '2026-02-01',
+    status: 'active',
+  },
+  {
+    id: 'user-maria-ctu',
+    fullName: 'Dr. Maria Fernandez',
+    email: 'maria.fernandez@ctu.edu.ph',
+    institutionId: 'ctu-main',
+    userType: 'Faculty Member',
+    organizationOrDept: 'College of Technology / Computer Studies',
+    role: 'faculty',
+    createdAt: '2026-02-05',
+    status: 'active',
+  },
+];
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Authentication & Demo Session
+  // Authentication & Session
   const [currentUser, setCurrentUser] = useState<DemoUserSession | null>(() => {
     try {
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
@@ -156,18 +291,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     } catch (e) {
       console.warn('Failed to parse auth session:', e);
     }
-    // Default to a demo student session so the user can immediately experience the product,
-    // but they can click "Landing & Login" or "Log Out" anytime!
-    return {
-      name: 'Juan Dela Cruz',
-      email: 'juan.delacruz@ctu.edu.ph',
-      role: 'student',
-      organization: 'BS Information Technology',
-    };
+    return null;
   });
 
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    return !!localStorage.getItem(AUTH_STORAGE_KEY) || true;
+    return !!localStorage.getItem(AUTH_STORAGE_KEY);
   });
 
   // Active institution
@@ -180,6 +308,81 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Active View
   const [activeView, setActiveView] = useState<AppView>('facilities');
+
+  // Dedicated Access Portal & Authentication Flow State
+  const [authFlowState, setAuthFlowState] = useState<AuthFlowState>({
+    audience: 'selection',
+    tab: 'login',
+    highlight: 'login',
+  });
+
+  const [isDemoModalOpen, setIsDemoModalOpen] = useState<boolean>(false);
+
+  const openAuthPortal = (
+    audience: 'selection' | 'institution' | 'user' | 'super_admin' = 'selection',
+    tab: 'login' | 'register' = 'login',
+    highlight: 'login' | 'demo' = 'login'
+  ) => {
+    setAuthFlowState({ audience, tab, highlight });
+    setActiveView('auth');
+  };
+
+  // Institutional Registration Requests State
+  const [institutionalRegistrations, setInstitutionalRegistrations] = useState<InstitutionalRegistrationRequest[]>(() => {
+    try {
+      const stored = localStorage.getItem(INST_REGISTRATIONS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse institutional registrations:', e);
+    }
+    return DEFAULT_INST_REGISTRATIONS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(INST_REGISTRATIONS_KEY, JSON.stringify(institutionalRegistrations));
+    } catch (e) {
+      console.warn('Failed to save institutional registrations:', e);
+    }
+  }, [institutionalRegistrations]);
+
+  // Demo Inquiries State
+  const [demoRequests, setDemoRequests] = useState<InstitutionalDemoRequest[]>(() => {
+    try {
+      const stored = localStorage.getItem(DEMO_REQUESTS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse demo requests:', e);
+    }
+    return DEFAULT_DEMO_REQUESTS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(DEMO_REQUESTS_KEY, JSON.stringify(demoRequests));
+    } catch (e) {
+      console.warn('Failed to save demo requests:', e);
+    }
+  }, [demoRequests]);
+
+  // Registered End Users State
+  const [registeredUsers, setRegisteredUsers] = useState<RegisteredUserAccount[]>(() => {
+    try {
+      const stored = localStorage.getItem(REGISTERED_USERS_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse registered users:', e);
+    }
+    return DEFAULT_REGISTERED_USERS;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(registeredUsers));
+    } catch (e) {
+      console.warn('Failed to save registered users:', e);
+    }
+  }, [registeredUsers]);
 
   // Selected facility for modal / prefilling
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
@@ -287,8 +490,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     addToast(
       'success',
-      'Demo Session Started',
-      `Logged in as ${userSession.name} (${role === 'super_admin' ? 'Super Admin' : role === 'university_admin' || role === 'admin' ? 'University Facility Admin' : 'Student / Faculty'}).`
+      'Signed In',
+      `Signed in as ${userSession.name} (${role === 'super_admin' ? 'Super Admin' : role === 'university_admin' || role === 'admin' ? 'University Facility Admin' : 'Student / Faculty'}).`
     );
   };
 
@@ -297,7 +500,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCurrentUser(null);
     localStorage.removeItem(AUTH_STORAGE_KEY);
     setActiveView('landing');
-    addToast('info', 'Logged Out', 'Returned to the SmartSpace landing & demo login page.');
+    addToast('info', 'Logged Out', 'You have been signed out of your SmartSpace account.');
   };
 
   // Dynamic institution & facility management
@@ -338,6 +541,322 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const deleteFacility = (id: string) => {
     setFacilities((prev) => prev.filter((f) => f.id !== id));
     addToast('warning', 'Facility Removed', 'Facility was removed from inventory.');
+  };
+
+  // Institutional Registration Handler
+  const submitInstitutionalRegistration = (data: {
+    institutionName: string;
+    institutionType: 'Public University' | 'Private University' | 'College' | 'Other';
+    officialEmail: string;
+    contactPerson: string;
+    contactNumber: string;
+    password?: string;
+  }): { success: boolean; message: string; error?: string } => {
+    const cleanEmail = data.officialEmail.trim().toLowerCase();
+    if (!data.institutionName.trim()) {
+      return { success: false, message: '', error: 'Institution name is required.' };
+    }
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      return { success: false, message: '', error: 'Please enter a valid official institutional email address.' };
+    }
+    if (!data.contactPerson.trim()) {
+      return { success: false, message: '', error: 'Official contact person name is required.' };
+    }
+    if (!data.contactNumber.trim()) {
+      return { success: false, message: '', error: 'Contact phone/telephone number is required.' };
+    }
+
+    // Check duplicate pending or active
+    const existing = institutions.find(
+      (i) => i.name.toLowerCase() === data.institutionName.trim().toLowerCase()
+    );
+    if (existing) {
+      return {
+        success: false,
+        message: '',
+        error: `An institutional workspace for "${existing.name}" is already registered on SmartSpace.`,
+      };
+    }
+
+    const newRequest: InstitutionalRegistrationRequest = {
+      id: `req-${Date.now().toString(36)}`,
+      institutionName: data.institutionName.trim(),
+      institutionType: data.institutionType,
+      officialEmail: cleanEmail,
+      contactPerson: data.contactPerson.trim(),
+      contactNumber: data.contactNumber.trim(),
+      submittedAt: new Date().toISOString().split('T')[0],
+      status: 'pending',
+      assignedAdminName: data.contactPerson.trim(),
+      assignedAdminEmail: cleanEmail,
+      notes: 'New institutional onboarding application submitted via SmartSpace Access Portal.',
+    };
+
+    setInstitutionalRegistrations((prev) => [newRequest, ...prev]);
+    addToast(
+      'info',
+      'Registration Submitted',
+      'Your institutional application is under pending review. Platform administrator verification is required before activation.'
+    );
+
+    return {
+      success: true,
+      message:
+        'Institutional registration received. In accordance with SmartSpace governance policies, a platform administrator will review and authorize your university credentials before workspace activation.',
+    };
+  };
+
+  // Approve Institutional Registration (Super Admin Action)
+  const approveInstitutionalRegistration = (requestId: string): { success: boolean; error?: string } => {
+    const req = institutionalRegistrations.find((r) => r.id === requestId);
+    if (!req) return { success: false, error: 'Registration request not found.' };
+
+    const words = req.institutionName.split(' ').filter((w) => w.length > 2);
+    const shortCode = (words.map((w) => w[0]).join('') || 'UNIV').toUpperCase().substring(0, 6);
+
+    const newInst: Institution = {
+      id: `${shortCode.toLowerCase()}-${Date.now().toString(36).substring(2, 6)}`,
+      name: req.institutionName,
+      shortName: shortCode,
+      campus: 'Main Campus, Cebu',
+      city: 'Cebu City',
+      type: req.institutionType === 'Public University' ? 'Public' : 'Private',
+      isPilot: false,
+      status: 'active',
+      subscriptionPlan: 'Standard',
+      contactName: req.contactPerson,
+      contactEmail: req.officialEmail,
+      assignedAdminName: req.assignedAdminName || req.contactPerson,
+      assignedAdminEmail: req.assignedAdminEmail || req.officialEmail,
+      registeredAt: new Date().toISOString().split('T')[0],
+      statusNote: `Authorized by Super Admin on ${new Date().toISOString().split('T')[0]}`,
+    };
+
+    setInstitutions((prev) => [newInst, ...prev]);
+    setInstitutionalRegistrations((prev) =>
+      prev.map((r) => (r.id === requestId ? { ...r, status: 'approved' } : r))
+    );
+
+    addToast(
+      'success',
+      'Institution Authorized',
+      `${newInst.name} is now an active university workspace. University Admin privileges authorized for ${newInst.assignedAdminEmail}.`
+    );
+
+    return { success: true };
+  };
+
+  // Reject Institutional Registration (Super Admin Action)
+  const rejectInstitutionalRegistration = (requestId: string, reason: string): { success: boolean; error?: string } => {
+    if (!reason.trim()) {
+      return { success: false, error: 'A rejection reason is required for institutional audit records.' };
+    }
+
+    setInstitutionalRegistrations((prev) =>
+      prev.map((r) => (r.id === requestId ? { ...r, status: 'rejected', rejectionReason: reason } : r))
+    );
+
+    addToast('warning', 'Registration Declined', 'Institutional registration request has been rejected.');
+    return { success: true };
+  };
+
+  // Submit Institutional Demo Request
+  const submitDemoRequest = (data: {
+    institutionName: string;
+    contactName: string;
+    contactEmail: string;
+    contactNumber: string;
+    designation: string;
+    estimatedFacilities: string;
+    preferredDate?: string;
+    message?: string;
+  }): { success: boolean; message: string; error?: string } => {
+    if (!data.institutionName.trim() || !data.contactName.trim() || !data.contactEmail.trim()) {
+      return {
+        success: false,
+        message: '',
+        error: 'Please provide university name, contact person name, and official email.',
+      };
+    }
+
+    const newDemo: InstitutionalDemoRequest = {
+      id: `demo-${Date.now().toString(36)}`,
+      institutionName: data.institutionName.trim(),
+      contactName: data.contactName.trim(),
+      contactEmail: data.contactEmail.trim().toLowerCase(),
+      contactNumber: data.contactNumber.trim(),
+      designation: data.designation.trim() || 'Institutional Administrator',
+      estimatedFacilities: data.estimatedFacilities || '10-25 Spaces',
+      preferredDate: data.preferredDate || '',
+      message: data.message?.trim() || '',
+      submittedAt: new Date().toISOString().split('T')[0],
+      status: 'new',
+    };
+
+    setDemoRequests((prev) => [newDemo, ...prev]);
+    addToast(
+      'success',
+      'Demo Request Received',
+      'A SmartSpace onboarding coordinator will reach out to schedule your personalized live demo.'
+    );
+
+    return {
+      success: true,
+      message:
+        'Thank you! Your institutional demo request has been recorded. Our team will coordinate with your campus administration to schedule a live presentation.',
+    };
+  };
+
+  // User Registration Handler
+  const registerUserAccount = (data: {
+    fullName: string;
+    email: string;
+    institutionId: string;
+    userType: RegisteredUserAccount['userType'];
+    organizationOrDept: string;
+    password?: string;
+  }): { success: boolean; user?: RegisteredUserAccount; error?: string } => {
+    const cleanEmail = data.email.trim().toLowerCase();
+    if (!data.fullName.trim()) return { success: false, error: 'Full name is required.' };
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      return { success: false, error: 'Valid institutional email address is required.' };
+    }
+    if (!data.organizationOrDept.trim()) {
+      return { success: false, error: 'Organization or academic department name is required.' };
+    }
+
+    const targetInst = institutions.find((i) => i.id === data.institutionId);
+    if (!targetInst) {
+      return { success: false, error: 'Selected institution does not exist in SmartSpace.' };
+    }
+    if (targetInst.status !== 'active') {
+      return {
+        success: false,
+        error: `Institutional access for ${targetInst.name} is not currently active. User registration is unavailable until the institution completes onboarding.`,
+      };
+    }
+
+    // Check duplicate
+    if (registeredUsers.some((u) => u.email.toLowerCase() === cleanEmail)) {
+      return {
+        success: false,
+        error: 'An account with this institutional email already exists. Please log in directly.',
+      };
+    }
+
+    const role: UserRole = data.userType === 'Faculty Member' ? 'faculty' : 'student';
+    const newUser: RegisteredUserAccount = {
+      id: `usr-${Date.now().toString(36)}`,
+      fullName: data.fullName.trim(),
+      email: cleanEmail,
+      institutionId: data.institutionId,
+      userType: data.userType,
+      organizationOrDept: data.organizationOrDept.trim(),
+      role,
+      createdAt: new Date().toISOString().split('T')[0],
+      status: 'active',
+    };
+
+    setRegisteredUsers((prev) => [newUser, ...prev]);
+    setInstitutionId(data.institutionId);
+    loginAs(role, cleanEmail, newUser.fullName);
+    setActiveView('facilities');
+
+    addToast('success', 'Account Created', `Welcome to SmartSpace, ${newUser.fullName}!`);
+    return { success: true, user: newUser };
+  };
+
+  // Credential-Based Login Handler
+  const loginWithCredentials = (
+    email: string,
+    password: string,
+    portalType: 'institution' | 'user' | 'super_admin'
+  ): { success: boolean; error?: string } => {
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail) {
+      return { success: false, error: 'Please enter your institutional email address.' };
+    }
+    if (!password) {
+      return { success: false, error: 'Please enter your account password.' };
+    }
+
+    // Super Admin Flow
+    if (portalType === 'super_admin') {
+      if (cleanEmail === 'superadmin@smartspace.ph' || cleanEmail.includes('superadmin')) {
+        loginAs('super_admin', cleanEmail, 'SmartSpace Platform Super Admin');
+        return { success: true };
+      }
+      return {
+        success: false,
+        error: 'Access restricted: Only authorized platform administrators may access this console.',
+      };
+    }
+
+    // University Admin / Institutional Flow
+    if (portalType === 'institution') {
+      const matchedInst = institutions.find(
+        (i) =>
+          i.assignedAdminEmail.toLowerCase() === cleanEmail ||
+          i.contactEmail.toLowerCase() === cleanEmail
+      );
+
+      if (!matchedInst) {
+        return {
+          success: false,
+          error: 'No authorized university administrator account found for this email. Please verify credentials or register your institution.',
+        };
+      }
+
+      if (matchedInst.status !== 'active') {
+        return {
+          success: false,
+          error: `The institutional workspace for ${matchedInst.name} is currently ${matchedInst.status}. Access is pending administrator review.`,
+        };
+      }
+
+      setInstitutionId(matchedInst.id);
+      loginAs('university_admin', cleanEmail, matchedInst.assignedAdminName || 'University Facility Administrator');
+      setActiveView('admin-requests');
+      return { success: true };
+    }
+
+    // User Flow (Students, Orgs, Faculty)
+    const matchedUser = registeredUsers.find((u) => u.email.toLowerCase() === cleanEmail);
+    if (matchedUser) {
+      const userInst = institutions.find((i) => i.id === matchedUser.institutionId);
+      if (userInst && userInst.status !== 'active') {
+        return {
+          success: false,
+          error: `Your institution (${userInst.name}) is not currently active on SmartSpace. Registration is paused until institutional onboarding is complete.`,
+        };
+      }
+      if (userInst) {
+        setInstitutionId(userInst.id);
+      }
+      loginAs(matchedUser.role, matchedUser.email, matchedUser.fullName);
+      setActiveView('facilities');
+      return { success: true };
+    }
+
+    // Default demo fallback accounts
+    if (cleanEmail === 'juan.delacruz@ctu.edu.ph' || cleanEmail.includes('juan')) {
+      setInstitutionId('ctu-main');
+      loginAs('student', 'juan.delacruz@ctu.edu.ph', 'Juan Dela Cruz');
+      setActiveView('facilities');
+      return { success: true };
+    }
+
+    if (cleanEmail === 'maria.fernandez@ctu.edu.ph' || cleanEmail.includes('maria')) {
+      setInstitutionId('ctu-main');
+      loginAs('faculty', 'maria.fernandez@ctu.edu.ph', 'Dr. Maria Fernandez');
+      setActiveView('facilities');
+      return { success: true };
+    }
+
+    return {
+      success: false,
+      error: 'Unrecognized user credentials. Please create an account or verify your institutional email.',
+    };
   };
 
   // Bookings state
@@ -912,6 +1431,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         removeToast,
         disclaimerDismissed,
         setDisclaimerDismissed,
+        // Auth Portal & Registration
+        authFlowState,
+        setAuthFlowState,
+        openAuthPortal,
+        isDemoModalOpen,
+        setIsDemoModalOpen,
+        institutionalRegistrations,
+        submitInstitutionalRegistration,
+        approveInstitutionalRegistration,
+        rejectInstitutionalRegistration,
+        demoRequests,
+        submitDemoRequest,
+        registeredUsers,
+        registerUserAccount,
+        loginWithCredentials,
       }}
     >
       {children}

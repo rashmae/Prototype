@@ -1,5 +1,51 @@
 export type UserRole = 'super_admin' | 'university_admin' | 'admin' | 'student' | 'faculty';
 
+export interface InstitutionalRegistrationRequest {
+  id: string;
+  institutionName: string;
+  institutionType: 'Public University' | 'Private University' | 'College' | 'Other';
+  officialEmail: string;
+  contactPerson: string;
+  contactNumber: string;
+  submittedAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+  assignedAdminName?: string;
+  assignedAdminEmail?: string;
+  notes?: string;
+}
+
+export interface InstitutionalDemoRequest {
+  id: string;
+  institutionName: string;
+  contactName: string;
+  contactEmail: string;
+  contactNumber: string;
+  designation: string;
+  estimatedFacilities: string;
+  preferredDate?: string;
+  message?: string;
+  submittedAt: string;
+  status: 'new' | 'contacted' | 'scheduled';
+}
+
+export interface RegisteredUserAccount {
+  id: string;
+  fullName: string;
+  email: string;
+  institutionId: string;
+  userType: 
+    | 'Student Organization Officer'
+    | 'Faculty Member'
+    | 'Department Representative'
+    | 'Campus Office Representative'
+    | 'Other Authorized User';
+  organizationOrDept: string;
+  role: 'student' | 'faculty';
+  createdAt: string;
+  status: 'active' | 'suspended';
+}
+
 export interface Institution {
   id: string;
   name: string;

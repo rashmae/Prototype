@@ -16,7 +16,7 @@ export const DEMO_INSTITUTIONS: Institution[] = [
     assignedAdminName: 'Engr. R. Santos',
     assignedAdminEmail: 'admin.facilities@ctu.edu.ph',
     registeredAt: '2026-01-15',
-    statusNote: 'Proposed Initial Pilot Institution',
+    statusNote: 'Anchor University · Active Workspace',
   },
   {
     id: 'usc-tc',
@@ -67,7 +67,7 @@ export const DEMO_INSTITUTIONS: Institution[] = [
     assignedAdminName: 'Prof. J. Lim',
     assignedAdminEmail: 'campusdev@up.edu.ph',
     registeredAt: '2026-03-15',
-    statusNote: 'Evaluation Trial Workspace',
+    statusNote: 'Institutional Subscription · Active Workspace',
   },
   {
     id: 'usjr-main',
